@@ -23,44 +23,33 @@ import java.io.File
 import org.scalatest.FunSuite
 
 class CsvModelParserTest extends FunSuite {
+  val modelFile = new File("src/test/resources/model.tsv")
+
+  def getParser: CsvModelParser = {
+    new CsvModelParser(modelFile)
+  }
+
   test("query for 'upon'") {
     val expected = "(0.1)\tupon: 3\tthey: 3\tfat: 3\tcold: 3\tabove: 2\tcontinued: 2\tunsatiable: 2\tbringing: 2\tdoors: 2\trich: 2"
-    val modelFile = new File("src/test/resources/model.tsv")
-    val parser = new CsvModelParser(modelFile)
-
-    assert(expected === parser.query("upon"))
+    assert(expected === getParser.query("upon"))
   }
 
   test("query for non-existent token") {
-    val expected = ""
-    val modelFile = new File("src/test/resources/model.tsv")
-    val parser = new CsvModelParser(modelFile)
-
-    assert(expected === parser.query("non-existent"))
+    assert(getParser.query("non-existent").isEmpty)
   }
 
   test("query for 'the'") {
     val expected = "(0.1)\tthe: 9\thad: 7\tend: 5\tshe: 4\tmen: 3\tleave: 2\tShy: 2\tapartments: 2\tthemselves: 2\tweeks: 2"
-    val modelFile = new File("src/test/resources/model.tsv")
-    val parser = new CsvModelParser(modelFile)
-
-    assert(expected === parser.query("the"))
+    assert(expected === getParser.query("the"))
   }
 
   test("query for two tokens") {
     val expected = "(0.1)\tupon: 3\tthey: 3\tfat: 3\tcold: 3\tabove: 2\tcontinued: 2\tunsatiable: 2\tbringing: 2\tdoors: 2\trich: 2"
-    val modelFile = new File("src/test/resources/model.tsv")
-    val parser = new CsvModelParser(modelFile)
-
-    assert(expected === parser.query("upon they"))
+    assert(expected === getParser.query("upon they"))
   }
-
 
   test("query for two tokens with extra whitespace") {
     val expected = "(0.1)\tupon: 3\tthey: 3\tfat: 3\tcold: 3\tabove: 2\tcontinued: 2\tunsatiable: 2\tbringing: 2\tdoors: 2\trich: 2"
-    val modelFile = new File("src/test/resources/model.tsv")
-    val parser = new CsvModelParser(modelFile)
-
-    assert(expected === parser.query("upon   they"))
+    assert(expected === getParser.query("upon   they"))
   }
 }

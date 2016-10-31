@@ -54,52 +54,56 @@ class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
     */
   def query(tokens: Seq[String]): String = {
     val lines = findLines(tokens)
-    output(lines, tokens)
+    output(lines.toSeq, tokens)
   }
 
   /**
     * Retrieves topic lines in the input file that have at least one occurrence assigned to all of the input tokens.
     *
-    * @param tokens a sequence of query token strings
+    * @param queryTokens a sequence of query token strings
     * @return an iterator over the matching [[de.tudarmstadt.ukp.topicexplorer.csv.Topic]]s
     */
-  def findLines(tokens: Seq[String]): Iterator[Topic] = {
+  def findLines(queryTokens: Seq[String]): Iterator[Topic] = {
     LOGGER.info("Reading file " + modelFile)
     io.Source.fromFile(modelFile).getLines()
-      .map(line => parseLine(line, queryTokens = tokens))
-      .withFilter(topic => tokens.forall(query => topic.tokenCounts.exists(_._1 == query)))
+      .map(parseLine(_, queryTokens = queryTokens)) // map lines to Topics
+      .withFilter(findTokens(_, queryTokens).forall(_._2 > 0)) // obtain lines in which all the query tokens occurred
   }
 
   /**
     * Returns a pair of topic's alpha value if available (in first column), and a sequence of pairs
-    * representing tokens and respective counts
+    * representing tokens and respective counts.
+    * <p>
+    * The resulting [[de.tudarmstadt.ukp.topicexplorer.csv.Topic]] holds the top `n` tokens (defined
+    * by the `maxToken` parameter, defaulting to 10 plus the tokens which were passed with the
+    * `queryTokens` parameters
     *
-    * @param line      the input line
-    * @param maxTokens the maximum number of tokens to output (apart from the query)
-    * @return a [[Topic]] for the input line
+    * @param line        the input line
+    * @param maxTokens   the maximum number of tokens to output (apart from the query)
+    * @param queryTokens these tokens are always added to the resulting topic's token sequence, regardless of their count
+    * @return a [[de.tudarmstadt.ukp.topicexplorer.csv.Topic]] for the input line
     */
   def parseLine(line: String, maxTokens: Int = 10, queryTokens: Seq[String]): Topic = {
     val columns = line.split(columnSeparator)
     val (alpha, tokens) =
-      if (columns.length % 2 == 0) (None, columns)
-      else (Some(columns.head.toFloat), columns.tail) // first column contains topic alpha value
+      if (columns.length % 2 == 0) (None, columns) // even number of columns: no alpha value
+      else (Some(columns.head.toFloat), columns.tail) // uneven number of columns: first column contains alpha value
 
     /* the token-count pairs come pre-sorted in the input file */
-    val tokenPairs = tokens.grouped(2)
+    val topTokens = tokens.grouped(2)
       .map(a => (a(0), a(1).toFloat.toInt))
-      .toList
+      .take(maxTokens)
+      .toSeq
 
-    val topTokens: List[(String, Int)] = tokenPairs.take(maxTokens)
+    val topic = Topic(alpha, topTokens)
 
-    // add query tokens
-    val tokenCounts = topTokens ++ queryTokens
-      .filterNot(queryToken => topTokens.exists(_._1 == queryToken))
-      .map(queryToken => tokenPairs.find(_._1 == queryToken))
-      .filter(_.isDefined)
-      .map(_.get)
-      .sortBy(-_._2)
-
-    Topic(alpha, tokenCounts)
+    /* add query tokens */
+    Topic(topic.alpha,
+      (topic.tokenCounts ++
+        findTokens(topic, queryTokens))
+        .distinct
+        .sortBy(-_._2)
+    )
   }
 
   /**
@@ -109,20 +113,17 @@ class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
     * @param queryTokens a sequence of strings representing the query tokens
     * @return a single string
     */
-  def output(topics: Iterator[Topic], queryTokens: Seq[String]): String = {
-    val topicList = topics.toList
-
+  def output(topics: Seq[Topic], queryTokens: Seq[String]): String = {
     /* count tokens */
     val queryTokenCounts = queryTokens
-      .map { token => topicList.map(topic => findToken(topic, token))
+      .map { token => topics.map(topic => findToken(topic, token))
         .map(_._2)
         .sum
       }
-      .toList
     LOGGER.info(s"Total count for '${queryTokens.mkString(", ")}': ${queryTokenCounts.mkString(", ")}")
 
     /* generate output string */
-    topicList
+    topics
       .sortBy(-harmonicMeanTokenCounts(_, queryTokens))
       .map(topicToString)
       .mkString(System.lineSeparator())
@@ -152,7 +153,9 @@ class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
     * @return the sum of all query tokens in the topic
     */
   def sumTokenCounts(topic: Topic, queryTokens: Seq[String]): Int =
-    findTokens(topic, queryTokens).map(_._2).sum
+    findTokens(topic, queryTokens)
+      .map(_._2)
+      .sum
 
   /**
     * Return the harmonic mean over the frequency counts for the query tokens in the given topic.
@@ -177,7 +180,7 @@ class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
     * @return a sequence of '(token, count)' pairs, one for each input token
     */
   def findTokens(topic: Topic, tokens: Seq[String]): Seq[(String, Int)] =
-    tokens.map(token => findToken(topic, token))
+    tokens.map(findToken(topic, _))
 
   /**
     * Extract a token with count for a topic. If the token does not occur in the topic, the count

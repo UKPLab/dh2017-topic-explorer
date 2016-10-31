@@ -59,24 +59,15 @@ class MalletModelConverter(modelFile: File) {
         alphabet.lookupObject(id.getID).asInstanceOf[String]
           .replaceAll("\r\n", " "))) // remove linebreaks within tokens (should usually not occur)
         .filterNot(_._2.contains(columnSeparator)) // ignore tokens containing the column separator
-        .map { case (weight, token) => writeToken(weight, token, outputStream, columnSeparator) }
-        .foreach(tokenCount += _) // increase the token count
+        .foreach { case (weight, token) =>
+        outputStream.write(s"$columnSeparator$token$columnSeparator$weight")
+        tokenCount += 1
+      }
 
       LOGGER.debug(s"$tokenCount tokens written.")
       outputStream.newLine()
       topicCount += 1
     }
     outputStream.close()
-  }
-
-  private def writeToken(weight: Double, token: String, outputStream: Writer, columnSeparator: Char): Int = {
-    if (token.contains(columnSeparator)) {
-      LOGGER.warn(s"Ignoring token '$token'.")
-      0
-    }
-    else {
-      outputStream.write(s"$columnSeparator$token$columnSeparator$weight")
-      1
-    }
   }
 }
