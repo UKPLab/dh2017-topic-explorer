@@ -67,7 +67,7 @@ class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
     LOGGER.info("Reading file " + modelFile)
     io.Source.fromFile(modelFile).getLines()
       .map(parseLine(_, queryTokens = queryTokens)) // map lines to Topics
-      .map(topic => (topic, harmonicMeanTokenCounts(topic, queryTokens))) // asign score to topic
+      .map(topic => (topic, harmonicMeanTokenCounts(topic, queryTokens))) // assign score to topic
       .withFilter(_._2 > minScore)
   }
 
@@ -122,19 +122,31 @@ class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
     */
   def output(topics: Seq[(Topic, Double)], queryTokens: Seq[String]): String = {
     /* count tokens */
-    val queryTokenCounts = queryTokens
-      .map { token => topics.map(topic => findToken(topic._1, token))
-        .map(_._2)
-        .sum
-      }
-    LOGGER.info(s"Total count for '${queryTokens.mkString(", ")}': ${queryTokenCounts.mkString(", ")}")
+
+    val queryTokenCounts = countTokens(topics.map(_._1), queryTokens)
+    LOGGER.info(s"Total token counts: ${queryTokenCounts.mkString(", ")}")
 
     /* generate output string */
     topics
-      .sortBy(-_._2) // sort by topic score
-      .map(_._1) // omit the topic scores
+      .sortBy(-_._2) // sort by topic score in descending order
+      .map(_._1) // drop the topic scores
       .map(topicToString)
       .mkString(System.lineSeparator())
+  }
+
+  /**
+    * For the given query tokens, separately sum up their counts over the topics.
+    *
+    * @param topics a sequence of [[de.tudarmstadt.ukp.topicexplorer.csv.Topic]]s
+    * @param tokens the tokens to sum up
+    * @return
+    */
+  def countTokens(topics: Seq[Topic], tokens: Seq[String]): Map[String, Int] = {
+    topics
+      .flatMap(findTokens(_, tokens))
+      .groupBy(_._1)
+      .mapValues(_.map(_._2)) // remove tokens from (token, count) pairs
+      .mapValues(_.sum)
   }
 
   /**
