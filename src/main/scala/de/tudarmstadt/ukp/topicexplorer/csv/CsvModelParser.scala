@@ -63,11 +63,12 @@ class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
     * @param queryTokens a sequence of query token strings
     * @return an iterator over the matching [[de.tudarmstadt.ukp.topicexplorer.csv.Topic]]s
     */
-  def findLines(queryTokens: Seq[String]): Iterator[Topic] = {
+  def findLines(queryTokens: Seq[String], minScore: Double = 0): Iterator[(Topic, Double)] = {
     LOGGER.info("Reading file " + modelFile)
     io.Source.fromFile(modelFile).getLines()
       .map(parseLine(_, queryTokens = queryTokens)) // map lines to Topics
-      .withFilter(findTokens(_, queryTokens).forall(_._2 > 0)) // obtain lines in which all the query tokens occurred
+      .map(topic => (topic, harmonicMeanTokenCounts(topic, queryTokens))) // asign score to topic
+      .withFilter(_._2 > minScore)
   }
 
   /**
@@ -109,21 +110,20 @@ class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
   def filterTokenSequence(allTokens: Seq[(String, Int)], queryTokens: Seq[String], nTokens: Int): Seq[(String, Int)] = {
     val topTokens = allTokens.take(nTokens)
     val queryTokenPairs = allTokens.filter(token => queryTokens.contains(token._1))
-    (topTokens ++ queryTokenPairs)
-      .distinct // remove duplicates
+    (topTokens ++ queryTokenPairs).distinct // remove duplicates
   }
 
   /**
     * Convert the topics into a single string, ordering the topic by frequency of the queries.
     *
-    * @param topics      a list of [[de.tudarmstadt.ukp.topicexplorer.csv.Topic]]s
+    * @param topics      a list of [[de.tudarmstadt.ukp.topicexplorer.csv.Topic]]-score pairs
     * @param queryTokens a sequence of strings representing the query tokens
     * @return a single string
     */
-  def output(topics: Seq[Topic], queryTokens: Seq[String]): String = {
+  def output(topics: Seq[(Topic, Double)], queryTokens: Seq[String]): String = {
     /* count tokens */
     val queryTokenCounts = queryTokens
-      .map { token => topics.map(topic => findToken(topic, token))
+      .map { token => topics.map(topic => findToken(topic._1, token))
         .map(_._2)
         .sum
       }
@@ -131,7 +131,8 @@ class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
 
     /* generate output string */
     topics
-      .sortBy(-harmonicMeanTokenCounts(_, queryTokens))
+      .sortBy(-_._2) // sort by topic score
+      .map(_._1) // omit the topic scores
       .map(topicToString)
       .mkString(System.lineSeparator())
   }

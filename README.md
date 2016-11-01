@@ -50,12 +50,18 @@ Don't hesitate to send us an e-mail or report an issue, if something is broken (
 ## Running
 
 * In order to run, use `sbt run`. There are two modes:
-    1. Convert a Mallet model file into human-readable TSV format: `sbt run -m example.tsv --mallet-file mallet.model`
+    1. Convert a Mallet model file into human-readable TSV format: `sbt "run -m example.tsv --mallet-file mallet.model"`
         * When the conversation is done, the interactive exploration mode is started.
-    2. Explore a previously converted model in TSV format: `sbt run -m example.tsv`
+    2. Explore a previously converted model in TSV format: `sbt "run -m example.tsv"`
   
 * In order to generate an executable 'fat Jar', run: `sbt assembly`; the output file will be in `target/scala-2.11/TopicExplorer-assembly-<version>.jar`
     * Execute the Jar file (platform-independent) with the same parameters as shown above, e.g.: `java -jar TopicExplorer-assembly-0.1.jar`
+
+### Querying
+
+In interactive mode, enter one or multiple terms, separated by whitespace, for querying the model. The system retrieves all the topics to which each one of the query terms has been assigned at least once.
+The output for each topic displays the 10 most weighty tokens along with their topic counts plus the query tokens and their topic counts.
+The topics are sorted by the frequency of the query term. In the case of multi-term queries, the harmonic mean between all the query term frequencies is used for ordering.
 
 ### Parameter description
 
