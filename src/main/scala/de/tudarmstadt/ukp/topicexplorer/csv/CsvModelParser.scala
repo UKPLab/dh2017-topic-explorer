@@ -1,21 +1,21 @@
-/*******************************************************************************
- * Copyright 2016
- * Ubiquitous Knowledge Processing (UKP) Lab
- * Technische Universität Darmstadt
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- ******************************************************************************/
+/** *****************************************************************************
+  * Copyright 2016
+  * Ubiquitous Knowledge Processing (UKP) Lab
+  * Technische Universität Darmstadt
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+  *
+  * http://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  *
+  * *****************************************************************************/
 package de.tudarmstadt.ukp.topicexplorer.csv
 
 import java.io.File
@@ -89,21 +89,28 @@ class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
       if (columns.length % 2 == 0) (None, columns) // even number of columns: no alpha value
       else (Some(columns.head.toFloat), columns.tail) // uneven number of columns: first column contains alpha value
 
-    /* the token-count pairs come pre-sorted in the input file */
-    val topTokens = tokens.grouped(2)
+    /* group tokens and counts to pairs */
+    lazy val topicTokens = tokens.grouped(2)
       .map(a => (a(0), a(1).toFloat.toInt))
-      .take(maxTokens)
       .toSeq
 
-    val topic = Topic(alpha, topTokens)
+    val relevantTokens = filterTokenSequence(topicTokens, queryTokens, maxTokens)
+    Topic(alpha, relevantTokens)
+  }
 
-    /* add query tokens */
-    Topic(topic.alpha,
-      (topic.tokenCounts ++
-        findTokens(topic, queryTokens))
-        .distinct
-        .sortBy(-_._2)
-    )
+  /**
+    * Returns the top `n` tokens plus the 'important' tokens.
+    *
+    * @param allTokens   a sequence of a topic's (token, count) pairs
+    * @param queryTokens tokens that need to be retained on top
+    * @param nTokens     number of tokens that are taken from `allTokens`
+    * @return a sequence of (token, count) pairs; its maximum length is `nTokens` plus the length of `queryTokens`
+    */
+  def filterTokenSequence(allTokens: Seq[(String, Int)], queryTokens: Seq[String], nTokens: Int): Seq[(String, Int)] = {
+    val topTokens = allTokens.take(nTokens)
+    val queryTokenPairs = allTokens.filter(token => queryTokens.contains(token._1))
+    (topTokens ++ queryTokenPairs)
+      .distinct // remove duplicates
   }
 
   /**
@@ -140,6 +147,7 @@ class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
       if (topic.alpha.isDefined) s"(${topic.alpha.get.toString})\t"
       else ""
     val tokens = topic.tokenCounts
+      .sortBy(-_._2) // sort by count in descending order
       .map(pair => s"${pair._1}: ${pair._2}")
       .mkString("\t")
     alpha + tokens
