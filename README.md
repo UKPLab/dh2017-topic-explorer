@@ -1,9 +1,8 @@
 # Topic Model Explorer
 
-This projects provides an interactive query tool for querying LDA topic models created with [Mallet](http://mallet.cs.umass.edu/). 
+This projects provides a text-based interactive query tool for querying LDA topic models created with [Mallet](http://mallet.cs.umass.edu/). 
 
-Suitable model files can also be created with [DKPro Core](https://dkpro.github.io/dkpro-core/).
-Please have a look at the [DKPro Core LDA example pipeline](https://github.com/dkpro/dkpro-core-examples/blob/master/lda-asl/src/main/java/de/tudarmstadt/ukp/dkpro/core/examples/lda/LdaEstimationPipeline.java).
+Suitable model files can also be created with [DKPro Core](https://dkpro.github.io/dkpro-core/). Please have a look at the [DKPro Core LDA example pipeline](https://github.com/dkpro/dkpro-core-examples/blob/master/lda-asl/src/main/java/de/tudarmstadt/ukp/dkpro/core/examples/lda/LdaEstimationPipeline.java).
 
 <!---
 Please use the following citation:
@@ -49,13 +48,19 @@ Don't hesitate to send us an e-mail or report an issue, if something is broken (
 
 ## Running
 
-* In order to run, use `sbt run`. There are two modes:
-    1. Convert a Mallet model file into human-readable TSV format: `sbt "run -m example.tsv --mallet-file mallet.model"`
-        * When the conversation is done, the interactive exploration mode is started.
-    2. Explore a previously converted model in TSV format: `sbt "run -m example.tsv"`
-  
-* In order to generate an executable 'fat Jar', run: `sbt assembly`; the output file will be in `target/scala-2.11/TopicExplorer-assembly-<version>.jar`
-    * Execute the Jar file (platform-independent) with the same parameters as shown above, e.g.: `java -jar TopicExplorer-assembly-0.1.jar`
+Download the most recent [binary](https://github.com/UKPLab/dh2017-topic-explorer/releases) and execute the Jar file, e.g.:
+`java -jar TopicExplorer-assembly-0.1.jar`
+
+There are two modes:
+    
+1. Convert a Mallet model file into human-readable TSV format: `java -jar  TopicExplorer-assembly-0.1.jar -m example.tsv --mallet-file mallet.model`. 
+    * When the conversation is done, the interactive exploration mode is started.
+2. Interactively query a previously converted model in TSV format: `TopicExplorer-assembly-0.1.jar -m example.tsv`
+
+
+### Compilation and Assembly
+* In order to compile and run the project directly, run `sbt "run <parameters>"`. 
+* In order to assembly an executable 'fat jar' yourself, run: `sbt assembly`; the output file will be in `target/scala-2.11/TopicExplorer-assembly-<version>.jar`
 
 ### Querying
 
@@ -65,7 +70,7 @@ The topics are sorted by the frequency of the query term. In the case of multi-t
 
 ### Parameter description
 
-* Get the list of parameters with: `sbt "run --help"`:
+* Get the list of parameters with: `java -jar TopicExplorer-assembly-0.1.jar --help`:
 ```
   -m, --model-file  <arg>    When converting a Mallet file, this is the target
                              file. When exploring a model, this is the input
