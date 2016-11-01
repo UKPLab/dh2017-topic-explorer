@@ -39,9 +39,33 @@ class UtilTest extends FunSuite {
     assert(expected === Util.harmonicMean(s))
   }
 
-  test("harmonic mean 10, 50, 100") {
-    val expected = 23.076923076923077
-    val s = Seq(10, 50, 100)
+  test("harmonic mean 1, 2, 4") {
+    val expected = 12d / 7d
+    val s = Seq(1, 2, 4)
     assert(expected === Util.harmonicMean(s))
+  }
+
+  test("geometric mean 2, 8") {
+    val expected = 4
+    val s = Seq(2, 8)
+    assert(expected === Util.geometricMean(s))
+  }
+
+  test("geometric mean 1, 1000") {
+    val expected = 31.622776601683793
+    val s = Seq(1, 1000)
+    assert(expected === Util.geometricMean(s))
+  }
+
+  test("geometric mean with 0") {
+    val expected = 0
+    val s = Seq(0, 2, 8)
+    assert(expected === Util.geometricMean(s))
+  }
+
+  test("geometric mean empty sequence") {
+    val expected = 0
+    val s = Seq.empty[Int]
+    assert(expected === Util.geometricMean(s))
   }
 }

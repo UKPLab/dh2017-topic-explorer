@@ -22,8 +22,29 @@ package de.tudarmstadt.ukp.topicexplorer
   * Utility methods.
   */
 object Util {
+  /**
+    * Computes the harmonic mean for a sequence of integers.
+    * In the undefined case of a 0 value or an empty sequence, returns 0.
+    *
+    * @see [[https://en.wikipedia.org/wiki/Harmonic_mean]]
+    * @param values a sequence of Ints
+    * @return the harmonic mean as a Double
+    */
   def harmonicMean(values: Seq[Int]): Double = {
     if (values.isEmpty || values.contains(0)) 0d
     else values.size.toDouble / values.map(1d / _.toDouble).sum
+  }
+
+  /**
+    * Computes the geometric mean over a sequence of integers.
+    * In the undefined case of an empty input sequence, returns 0.
+    *
+    * @see [[https://en.wikipedia.org/wiki/Geometric_mean]]
+    * @param values a sequence of Ints
+    * @return the geometric mean as a Double
+    */
+  def geometricMean(values: Seq[Int]): Double = {
+    if (values.isEmpty) 0d
+    else math.pow(values.product, 1d / values.size.toDouble)
   }
 }
