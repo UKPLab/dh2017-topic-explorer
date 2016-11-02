@@ -37,6 +37,7 @@ case class Topic(alpha: Option[Float], tokenCounts: Seq[(String, Int)])
 class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
   private val LOGGER: Logger = LoggerFactory.getLogger(classOf[CsvModelParser])
   require(modelFile.canRead, s"Cannot read file '$modelFile'.")
+  val encoding = "UTF-8"
 
   /**
     * Queries for a string, comprising one or multiple tokens (separated by whitespace).
@@ -65,7 +66,7 @@ class CsvModelParser(modelFile: File, columnSeparator: Char = '\t') {
     */
   def findLines(queryTokens: Seq[String], minScore: Double = 0): Iterator[(Topic, Double)] = {
     LOGGER.info("Reading file " + modelFile)
-    io.Source.fromFile(modelFile).getLines()
+    io.Source.fromFile(modelFile, encoding).getLines()
       .map(parseLine(_, queryTokens = queryTokens)) // map lines to Topics
       .map(topic => (topic, harmonicMeanTokenCounts(topic, queryTokens))) // assign score to topic
       .withFilter(_._2 > minScore)
