@@ -55,7 +55,7 @@ There are two modes:
     
 1. **Convert** a Mallet model file into human-readable TSV format: `java -jar  TopicExplorer-assembly-0.1.jar -m example.tsv --mallet-file mallet.model`. 
     * When the conversation is done, the interactive exploration mode is started.
-2. Interactively **query** a previously converted model in TSV format: `TopicExplorer-assembly-0.1.jar -m example.tsv`
+2. Interactively **query** a previously converted model in TSV format: `TopicExplorer-assembly-0.1.1.jar -m example.tsv`
 
 
 ### Compilation and Assembly
@@ -70,7 +70,7 @@ The topics are sorted by the frequency of the query term. In the case of multi-t
 
 ### Parameter description
 
-* Get the list of parameters with: `java -jar TopicExplorer-assembly-0.1.jar --help`:
+* Get the list of parameters with: `java -jar TopicExplorer-assembly-0.1.1.jar --help`:
 ```
   -m, --model-file  <arg>    When converting a Mallet file, this is the target
                              file. When exploring a model, this is the input
