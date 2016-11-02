@@ -48,12 +48,12 @@ Don't hesitate to send us an e-mail or report an issue, if something is broken (
 
 ## Running
 
-Download the most recent [binary](https://github.com/UKPLab/dh2017-topic-explorer/releases) and execute the Jar file, e.g.:
-`java -jar TopicExplorer-assembly-0.1.jar`
+Download the most recent [binary](https://github.com/UKPLab/dh2017-topic-explorer/releases/latest) and execute the Jar file, e.g.:
+`java -jar TopicExplorer-assembly-0.1.1.jar`
 
 There are two modes:
     
-1. **Convert** a Mallet model file into human-readable TSV format: `java -jar  TopicExplorer-assembly-0.1.jar -m example.tsv --mallet-file mallet.model`. 
+1. **Convert** a Mallet model file into human-readable TSV format: `java -jar  TopicExplorer-assembly-0.1.1.jar -m example.tsv --mallet-file mallet.model`. 
     * When the conversation is done, the interactive exploration mode is started.
 2. Interactively **query** a previously converted model in TSV format: `TopicExplorer-assembly-0.1.1.jar -m example.tsv`
 
