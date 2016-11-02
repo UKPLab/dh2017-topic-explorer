@@ -40,11 +40,11 @@ Don't hesitate to send us an e-mail or report an issue, if something is broken (
 
 ### At runtime
 
-* A Java Runtime Environment
+* A Java Runtime Environment (e.g. [Oracle JRE](http://www.oracle.com/technetwork/java/javase/downloads/))
 
 ### For compilation
 
-* [SBT](http://www.scala-sbt.org/) 0.13 or higher
+* [SBT](http://www.scala-sbt.org/) v0.13.8 or higher
 
 ## Running
 
@@ -53,9 +53,9 @@ Download the most recent [binary](https://github.com/UKPLab/dh2017-topic-explore
 
 There are two modes:
     
-1. Convert a Mallet model file into human-readable TSV format: `java -jar  TopicExplorer-assembly-0.1.jar -m example.tsv --mallet-file mallet.model`. 
+1. **Convert** a Mallet model file into human-readable TSV format: `java -jar  TopicExplorer-assembly-0.1.jar -m example.tsv --mallet-file mallet.model`. 
     * When the conversation is done, the interactive exploration mode is started.
-2. Interactively query a previously converted model in TSV format: `TopicExplorer-assembly-0.1.jar -m example.tsv`
+2. Interactively **query** a previously converted model in TSV format: `TopicExplorer-assembly-0.1.jar -m example.tsv`
 
 
 ### Compilation and Assembly
